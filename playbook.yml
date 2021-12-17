@@ -1,0 +1,7 @@
+---
+- name: test servicenow playbook
+  hosts: localhost
+  tasks:
+  - shell: echo 'test task'
+  
+

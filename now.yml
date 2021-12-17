@@ -1,0 +1,150 @@
+# A trivial example that creates a host from every record of the
+# ServiceNow cmdb_ci_server table. The ip_address column is used for
+# for ansible host, and server name for inventory hostname.
+# No groups will be created - all the resulting hosts are ungrouped.
+plugin: servicenow.itsm.now
+
+# `ansible-inventory -i inventory.now.yaml --graph` output:
+# @all:
+#  |--@ungrouped:
+#  |  |--DatabaseServer1
+#  |  |--DatabaseServer2
+#  |  |--INSIGHT-NY-03
+#  |  |--MailServerUS
+#  |  |--VMWARE-SD-04
+
+
+# Group hosts automatically, according to values of the manufacturer column.
+plugin: servicenow.itsm.now
+keyed_groups:
+  - key: manufacturer
+    separator: ""
+
+# `ansible-inventory -i inventory.now.yaml --graph` output:
+# @all:
+#  |--@Dell Inc.:
+#  |  |--DatabaseServer1
+#  |  |--DatabaseServer2
+#  |  |--INSIGHT-NY-03
+#  |--@Lenovo:
+#  |  |--FileServerFloor1
+#  |  |--FileServerFloor2
+#  |--@ungrouped:
+
+# Group hosts automatically, according to values of the os column. Filtering ensures
+# that we only see selected operating systems.
+plugin: servicenow.itsm.now
+query:
+  - os: = Linux Red Hat
+  - os: = Windows XP
+keyed_groups:
+  - key: os
+    prefix: os
+
+# `ansible-inventory -i inventory.now.yaml --graph` output:
+#  |--@os_Linux_Red_Hat:
+#  |  |--DatabaseServer1
+#  |  |--DatabaseServer2
+#  |--@os_Windows_XP:
+#  |  |--FileServerFloor1
+#  |  |--FileServerFloor2
+#  |  |--INSIGHT-NY-03
+#  |--@ungrouped:
+
+# Group hosts into named according to the specified criteria. Here, we created a group
+# of non-Windows production servers.
+plugin: servicenow.itsm.now
+groups:
+  non_windows_prod_servers: >-
+    classification == "Production" and
+    os not in ("Windows XP", "Windows 2000", "Windows 2000 Server")
+
+# `ansible-inventory -i inventory.now.yaml --graph` output:
+# @all:
+#  |--@non_windows_prod_servers:
+#  |  |--DatabaseServer2
+#  |  |--PS LinuxApp01
+#  |  |--PS LinuxApp02
+#  |  |--lnux100
+#  |  |--lnux101
+
+# Add composed variables to hosts. In the following example, we created a cost variable
+# that contains an amount and a currency, and set the ansible_host variable to the fqdn
+# listed in the record.
+plugin: servicenow.itsm.now
+inventory_hostname_source: asset_tag
+columns:
+  - name
+  - classification
+  - cpu_type
+compose:
+    cost: cost ~ " " ~ cost_cc
+    ansible_host: fqdn
+
+# `ansible-inventory -i inventory.now.yaml --graph --vars` output:
+# @all:
+#  |--@ungrouped:
+#  |  |--P1000019
+#  |  |  |--{ansible_host = my.server.com}
+#  |  |  |--{classification = Production}
+#  |  |  |--{cost = 100 USD}
+#  |  |  |--{cpu_type = Intel}
+#  |  |  |--{name = SAP-SD-02}
+
+
+# NOTE: All examples from here on are deprecated and should not be used when writing new
+# inventory sources.
+
+# Group hosts automatically, according to values of manufacturer and os columns.
+# Include only records with the specified operating systems.
+# Groups will most likely overlap.
+plugin: servicenow.itsm.now
+group_by:
+  manufacturer:
+  os:
+    includes:
+      - Linux Red Hat
+      - Windows XP
+
+# `ansible-inventory -i inventory.now.yaml --graph` output:
+# @all:
+#  |--@Dell_Inc_:
+#  |  |--DatabaseServer1
+#  |  |--DatabaseServer2
+#  |  |--INSIGHT-NY-03
+#  |--@Lenovo:
+#  |  |--FileServerFloor1
+#  |  |--FileServerFloor2
+#  |--@Linux_Red_Hat:
+#  |  |--DatabaseServer1
+#  |  |--DatabaseServer2
+#  |--@Windows_XP:
+#  |  |--FileServerFloor1
+#  |  |--FileServerFloor2
+#  |  |--INSIGHT-NY-03
+#  |--@ungrouped:
+
+
+# Group hosts into named groups, according to the specified criteria.
+# Below example creates a single group containing hosts that match
+# all the criteria.
+named_groups:
+  non_windows_prod_servers:
+    classification:
+      includes: [ Production ]
+    os:
+      excludes:
+        - Windows XP
+        - Windows 2000
+        - Windows 2000 Server
+        - Windows 2003 Standard
+
+# `ansible-inventory -i inventory.now.yaml --graph` output:
+# @all:
+#  |--@non_windows_prod_servers:
+#  |  |--DatabaseServer2
+#  |  |--PS LinuxApp01
+#  |  |--PS LinuxApp02
+#  |  |--lnux100
+#  |  |--lnux101
+#  |--@ungrouped:
