@@ -1,1 +1,3 @@
-servicenow.itsm
+---
+collections:
+ - name: servicenow.itsm
