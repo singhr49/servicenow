@@ -2,7 +2,7 @@
 # ServiceNow cmdb_ci_server table. The ip_address column is used for
 # for ansible host, and server name for inventory hostname.
 # No groups will be created - all the resulting hosts are ungrouped.
-plugin: servicenow.itsm.now
+###plugin: servicenow.itsm.now
 
 # `ansible-inventory -i inventory.now.yaml --graph` output:
 # @all:
@@ -15,10 +15,10 @@ plugin: servicenow.itsm.now
 
 
 # Group hosts automatically, according to values of the manufacturer column.
-plugin: servicenow.itsm.now
-keyed_groups:
-  - key: manufacturer
-    separator: ""
+###plugin: servicenow.itsm.now
+###keyed_groups:
+###  - key: manufacturer
+###    separator: ""
 
 # `ansible-inventory -i inventory.now.yaml --graph` output:
 # @all:
@@ -33,13 +33,13 @@ keyed_groups:
 
 # Group hosts automatically, according to values of the os column. Filtering ensures
 # that we only see selected operating systems.
-plugin: servicenow.itsm.now
-query:
-  - os: = Linux Red Hat
-  - os: = Windows XP
-keyed_groups:
-  - key: os
-    prefix: os
+###plugin: servicenow.itsm.now
+###query:
+###  - os: = Linux Red Hat
+###  - os: = Windows XP
+###keyed_groups:
+###  - key: os
+###    prefix: os
 
 # `ansible-inventory -i inventory.now.yaml --graph` output:
 #  |--@os_Linux_Red_Hat:
@@ -53,11 +53,11 @@ keyed_groups:
 
 # Group hosts into named according to the specified criteria. Here, we created a group
 # of non-Windows production servers.
-plugin: servicenow.itsm.now
-groups:
-  non_windows_prod_servers: >-
-    classification == "Production" and
-    os not in ("Windows XP", "Windows 2000", "Windows 2000 Server")
+###plugin: servicenow.itsm.now
+###groups:
+###  non_windows_prod_servers: >-
+###    classification == "Production" and
+###    os not in ("Windows XP", "Windows 2000", "Windows 2000 Server")
 
 # `ansible-inventory -i inventory.now.yaml --graph` output:
 # @all:
@@ -71,15 +71,15 @@ groups:
 # Add composed variables to hosts. In the following example, we created a cost variable
 # that contains an amount and a currency, and set the ansible_host variable to the fqdn
 # listed in the record.
-plugin: servicenow.itsm.now
-inventory_hostname_source: asset_tag
-columns:
-  - name
-  - classification
-  - cpu_type
-compose:
-    cost: cost ~ " " ~ cost_cc
-    ansible_host: fqdn
+###plugin: servicenow.itsm.now
+###inventory_hostname_source: asset_tag
+###columns:
+###  - name
+###  - classification
+###  - cpu_type
+###compose:
+###    cost: cost ~ " " ~ cost_cc
+###    ansible_host: fqdn
 
 # `ansible-inventory -i inventory.now.yaml --graph --vars` output:
 # @all:
