@@ -1,8 +1,4 @@
 plugin: servicenow.itsm.now
-instance: 
-  host: https://dev94372.service-now.com
-  password: "ewG6o+jD/K5X"
-  username: admin
 table: cmdb_ci_linux_server
 fields: [ip_address,fqdn,host_name,sys_class_name,name,os]
 inventory_hostname_source: ip_address
